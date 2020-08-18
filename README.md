@@ -239,3 +239,19 @@ You can then activate and start the application.
 Based on our configuration your brower needs to point to your IR1101's GigabitEthernet0/0/0 IP address and port number 2222. In my case this is http://192.168.2.101:2222/ like so:
 
 ![webui](images/webui-working.png)
+
+Note that despite what you might think, when triggering DIO outputs the LEDs on the SPMI expansion module are not lit up, they all remain dark but that is nevertheless working. You can test the different states with a multimeter or a digital oscilloscope like so:
+
+![images/oscilloscope.jpg](images/oscilloscope.jpg)
+
+# Controlling bigger load
+
+Since the DIO ports can only control very small loads, for this project I have used a [relay board](http://wiki.sunfounder.cc/index.php?title=4_Channel_5V_Relay_Module) that requires a 5V input, and uses optocouplers for galvanic isolation between the board and the Cisco IR1101, and to trigger channel inputs.
+
+Each channel is connected to a relay (blue box on the picture) with both a normally open and a normally closed contact.
+
+![relay-close](images/relay-close-up.jpg)
+
+To power the board you are in luck since I have used the IR1101's USB port which happens to be also 5V. All in all this is all hanging off the router, connected through a breadboard, and like so for the purpose of this project... thank you for your understanding!
+
+![mess](images/messed-up-setup.jpg)
