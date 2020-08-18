@@ -177,25 +177,24 @@ sh ./buid.sh
 
 You should now have a file in your current directory called `iox-ir1101-dio-write-web.tar.gz` which is your IOx application.
 
-# Deploy the application
+# Router Configuration
 
-IOx applications can be deployed on the Cisco IR1101, or any Cisco IOx platform, using for examle Cisco IOx Local Manager or `ioxclient`.
+A couple of point of additional attention are required for thie application to work.
 
-For instructions on Local Manager please check [Cisco IOx Local Manager Workflows](https://www.cisco.com/c/en/us/td/docs/routers/access/800/software/guides/iox/lm/reference-guide/1-9/b_iox_lm_ref_guide_1_9/b_iox_lm_ref_guide_1_9_chapter_010.html) on Cisco.com.
+## Check IP address
 
-A couple of point of additional attention are required. Since the application will need to be reached from outside the IR1101, you need to configure a static NAT rules on IR1101. To make this configuration easier I recomend to use a static IP address for your IOx application.
+Since the application will need to be reached from outside the IR1101, you need to configure a static NAT rules on IR1101.
 
 Configuration of the VPG0 interface that goes from IR1101 to IOx applications:
 
 ```
 interface VirtualPortGroup0
  ip address 192.168.1.1 255.255.255.0
- ip nat inside
 ```
 
-When the IOx application is being deployed make sure to select a static IP address in the VPG0 range, such as `192.168.1.5` with the default gateway pointing to VPG0 IP address:
+To make this configuration easier I recomend to use a static IP address for your IOx application, in this case we will use `192.168.1.5` for IOx as we have `192.168.1.1` for VPG0.
 
-![Local Manager static IP address](images/lm-ip-addr.png)
+## NAT
 
 Assuming the default interface on the IR1101 is GigabitEthernet0/0/0 we will expose port 2222 of that interface to our container's port 8080 (because that's the port number we had running per the image configuration) and configure the NAT inside and outside directions like so:
 
@@ -208,3 +207,35 @@ interface GigabitEthernet0/0/0
 interface VirtualPortGroup0
   ip nat inside
 ```
+
+## Expose Digital IO to IOx
+
+By default Digital IO ports are being used by IOS-XE and not accesible to Cisco IOx. To change that the ports will need to be exposed to IOx using this CLI configuration command in IOS-XE:
+
+```
+alarm contact attach-to-iox
+```
+
+# Deploy the application
+
+IOx applications can be deployed on the Cisco IR1101, or any Cisco IOx platform, using for examle Cisco IOx Local Manager or `ioxclient`.
+
+For instructions on Local Manager please check [Cisco IOx Local Manager Workflows](https://www.cisco.com/c/en/us/td/docs/routers/access/800/software/guides/iox/lm/reference-guide/1-9/b_iox_lm_ref_guide_1_9/b_iox_lm_ref_guide_1_9_chapter_010.html) on Cisco.com.
+
+When the IOx application is being deployed remeber to select a static IP address in the VPG0 range, such as `192.168.1.5` with the default gateway pointing to VPG0 IP address:
+
+![Local Manager static IP address](images/lm-ip-addr.png)
+
+During the activation you also need to assign each Digital IO (dio-1, dio-2,...) to this application peripherals during the activation phase.
+
+![dio-config-in-lm](images/lm-dio-config.png)
+
+This may seems like a waste of time but remember that one can have an IOx application having access to one single DIO port, and then you can choose which port is linked to what application.
+
+You can then activate and start the application.
+
+# Accessing the IOx application
+
+Based on our configuration your brower needs to point to your IR1101's GigabitEthernet0/0/0 IP address and port number 2222. In my case this is http://192.168.2.101:2222/ like so:
+
+![webui](images/webui-working.png)
